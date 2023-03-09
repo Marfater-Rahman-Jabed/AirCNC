@@ -1,8 +1,74 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { toast } from 'react-hot-toast';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Button from '../../Components/Button/Button';
+import { AuthContext } from '../../Components/Contexts/Context';
+import SmallSpinner from '../../Components/Spinner/SmallSpinner';
 
 const SignUp = () => {
+
+    const { createUser, updateUserProfile, verifyEmail, loading, setLoading, signInWithGoogle } = useContext(AuthContext);
+    const navigate = useNavigate()
+    const location = useLocation();
+    const from = location.state?.from?.pathname || '/'
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const form = event.target;
+        const name = form.name.value;
+        const email = form.email.value;
+        const password = form.password.value;
+        const image = form.image.files[0];
+
+
+        const formData = new FormData()
+        formData.append('image', image)
+        const url = `https://api.imgbb.com/1/upload?key=${process.env.REACT_APP_imageApiKey}`
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                // console.log(data.data.display_url)
+                createUser(email, password)
+                    .then(result => {
+                        const user = result.user;
+                        console.log(user);
+                        updateUserProfile(name, data.data.display_url)
+                            .then(() => {
+                                verifyEmail()
+                                    .then(() => {
+                                        toast.success('Check your Email for verification Purpose');
+
+                                        setLoading(false);
+                                    })
+                            })
+                            .catch(error => {
+                                console.log(error)
+                                toast.error(error.message);
+                                setLoading(false);
+                            })
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        toast.error(error.message);
+                        setLoading(false);
+                    })
+
+            })
+
+
+    }
+    const handleGoogleSignIn = () => {
+        signInWithGoogle()
+            .then(result => {
+                navigate(from, { replace: true })
+                toast.success('Successfully Register With Google')
+                console.log(result.user);
+            })
+    }
+
     return (
         <div className='flex justify-center items-center pt-8'>
             <div className='flex flex-col max-w-md p-6 rounded-md bg-gray-100 text-gray-900'>
@@ -10,7 +76,7 @@ const SignUp = () => {
                     <h1 className='my-3 text-4xl font-bold'>Sign Up</h1>
                     <p className='text-sm text-gray-400'>Create a new account</p>
                 </div>
-                <form action="" className='space-y-6 '>
+                <form action="" onSubmit={handleSubmit} className='space-y-6 '>
                     <div className='space-y-4'>
                         <div>
                             <label htmlFor='name' className='block mb-2 text-sm'>
@@ -56,7 +122,7 @@ const SignUp = () => {
                             <label htmlFor='password' className=' mb-2 text-sm'>
                                 Password :
                             </label>
-                            <input type="passwprd"
+                            <input type="password"
                                 name='password'
                                 id='password'
                                 required
@@ -71,7 +137,7 @@ const SignUp = () => {
                             type='submit'
                             classes={`w-full px-8 py-3 font-semibold rounded-md bg-gray-900 hover:bg-gray-700 hover:text-white text-gray-100`}
                         >
-                            Sign in
+                            {loading ? <SmallSpinner></SmallSpinner> : 'Sign Up'}
                         </Button>
                     </div>
 
@@ -85,7 +151,7 @@ const SignUp = () => {
                     <div className='flex-1 h-px sm:w-16 dark:bg-gray-700'></div>
                 </div>
                 <div className='flex justify-center space-x-4'>
-                    <button aria-label='Log in with Google' className='p-3 rounded-sm'>
+                    <button onClick={handleGoogleSignIn} aria-label='Log in with Google' className='p-3 rounded-sm'>
                         <svg
                             xmlns='http://www.w3.org/2000/svg'
                             viewBox='0 0 32 32'
