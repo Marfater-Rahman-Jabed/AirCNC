@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Button from '../../Components/Button/Button';
 import { toast } from 'react-hot-toast';
@@ -6,7 +6,8 @@ import { AuthContext } from '../../Components/Contexts/Context';
 import SmallSpinner from '../../Components/Spinner/SmallSpinner';
 
 const Login = () => {
-    const { signin, loading, setLoading, signInWithGoogle } = useContext(AuthContext);
+    const [userEmail, setUserEmail] = useState(null)
+    const { signin, loading, setLoading, signInWithGoogle, resetPassword } = useContext(AuthContext);
     const navigate = useNavigate()
     const location = useLocation();
     const from = location.state?.from?.pathname || '/'
@@ -42,6 +43,19 @@ const Login = () => {
             })
     }
 
+    const handleReset = () => {
+        resetPassword(userEmail)
+            .then(result => {
+                toast.success('Check your Email to set Password')
+                setLoading(false)
+                // console.log(result.user)
+            })
+            .catch(error => {
+                toast.error(error.message)
+                console.log(error);
+                setLoading(false)
+            })
+    }
     return (
         <div className='flex justify-center items-center pt-8'>
             <div className='flex flex-col max-w-md p-6 rounded-md bg-gray-100 text-gray-900'>
@@ -55,7 +69,7 @@ const Login = () => {
                             <label htmlFor='email' className='block mb-2 text-sm'>
                                 Email address
                             </label>
-                            <input type="email"
+                            <input onBlur={(event) => setUserEmail(event.target.value)} type="email"
                                 name='email'
                                 id='email'
                                 required
@@ -89,7 +103,7 @@ const Login = () => {
 
                 </form>
                 <div className='space-y-1'>
-                    <button className='text-xs hover:underline text-gray-400'>
+                    <button onClick={handleReset} className='text-xs hover:underline text-gray-400'>
                         Forgot password?
                     </button>
                 </div>

@@ -40,7 +40,7 @@ const SignUp = () => {
                                 verifyEmail()
                                     .then(() => {
                                         toast.success('Check your Email for verification Purpose');
-
+                                        navigate(from, { replace: true })
                                         setLoading(false);
                                     })
                             })
