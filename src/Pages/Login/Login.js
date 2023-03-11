@@ -4,6 +4,7 @@ import Button from '../../Components/Button/Button';
 import { toast } from 'react-hot-toast';
 import { AuthContext } from '../../Components/Contexts/Context';
 import SmallSpinner from '../../Components/Spinner/SmallSpinner';
+import { AuthToken } from '../../API/AuthApi';
 
 const Login = () => {
     const [userEmail, setUserEmail] = useState(null)
@@ -21,7 +22,9 @@ const Login = () => {
 
         signin(email, password)
             .then(result => {
+                // console.log(result.user)
                 toast.success('Login Successfull');
+                AuthToken(result.user)
                 navigate(from, { replace: true })
                 setLoading(false)
             })
@@ -36,6 +39,7 @@ const Login = () => {
         signInWithGoogle()
             .then(result => {
                 console.log(result.user)
+                AuthToken(result.user)
                 navigate(from, { replace: true })
             })
             .catch(error => {
